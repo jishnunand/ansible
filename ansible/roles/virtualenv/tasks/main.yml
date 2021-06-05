@@ -1,0 +1,23 @@
+---
+
+- name: Install Virtualenv package.
+  pip: name=virtualenv version=15.1.0 executable=pip3.6
+  become: true
+
+- name: Clean virtualenv path
+  file:
+    state: absent
+    path: "{{venv_home}}/{{project_name}}/"
+
+- name: "Creating Virtual Environment of Python3.6"
+  command: virtualenv -p {{py36_bin_path}} {{venv_home}}/{{project_name}} creates={{venv_home}}/{{project_name}}
+
+- name: "Ensure .bashrc exists"
+  file: path={{ user_home }}/.bashrc state=touch
+
+- name: "Activate {{venv_home}} on ssh"
+  lineinfile: dest={{user_home}}/.bashrc regexp='^.*/bin/activate$' state=present insertafter=EOF line="source {{venv_home}}/{{project_name}}/bin/activate"
+
+- name: "Install packages into virtual env"
+  pip: requirements={{billing_codebase}}/requirements.txt state=present virtualenv={{venv_home}}/{{project_name}}
+  ignore_errors: true

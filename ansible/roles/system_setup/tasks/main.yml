@@ -1,0 +1,95 @@
+---
+
+- name: Update apt cache.
+  apt: update_cache=true
+  become: true
+
+- name: Install required apt-packages
+  apt: name={{item}} state=installed
+  with_items:
+    - libssl-dev
+    - openssl
+    - python3-dev
+    - libpq-dev
+    - postgresql
+    - postgresql-contrib
+    - build-essential
+    - git
+    - supervisor
+  become: true
+
+
+- name: Check if Python 3.6 installed
+  shell: which python3.6
+  register: p3
+  ignore_errors: true
+
+- set_fact:
+   p3_status: "{{ p3.stdout | default('') }}"
+
+- name: Install Python 3.6
+  block:
+    - name: Get python 3.6
+      get_url:
+        url: "https://www.python.org/ftp/python/3.6.2/Python-3.6.2.tgz"
+        dest: /tmp/
+        mode: 755
+
+    - name: Check if python 3.6 tar exists
+      stat:
+        path: /tmp/Python-3.6.2.tgz
+      register: python_path
+
+    - name: Untar python3.6 if it exists
+      unarchive:
+        src: /tmp/Python-3.6.2.tgz
+        dest: /tmp/
+        copy: no
+      when: python_path.stat.exists == True
+
+    - name: Configure Python 3.6
+      shell: ./configure --prefix=/usr/local
+      args:
+        chdir: /tmp/Python-3.6.2/
+
+    - name: Make file
+      shell: make
+      args:
+        chdir: /tmp/Python-3.6.2/
+
+    - name: Run alt install to retain current python installations
+      shell: make altinstall
+      args:
+        chdir: /tmp/Python-3.6.2/
+  become: true
+  when: p3_status == ""
+
+- name: Remove associated directory
+  file:
+    path: "{{item.path}}"
+    state: absent
+  with_items:
+    - {path: "/tmp/Python-3.6.2/"}
+    - {path: "/tmp/Python-3.6.2.tgz"}
+  become: true
+  ignore_errors: true
+
+
+- name: Create required directory structure
+  file: path={{item.d}} state=directory owner={{item.o}} group={{item.g}} mode=0755 recurse=yes
+  with_items:
+      - {d: "{{billing_home}}" , o: "{{user}}", g: "{{user}}"}
+      - {d: "{{project_home}}" , o: "{{user}}", g: "{{user}}"}
+      - {d: "{{venv_home}}" , o: "{{user}}", g: "{{user}}"}
+      - {d: "{{billing_private}}" , o: "{{user}}", g: "{{user}}"}
+      - {d: "{{billing_public}}" , o: "{{user}}", g: "{{user}}"}
+      - {d: "{{billing_media}}" , o: "{{user}}", g: "{{user}}"}
+      - {d: "{{billing_static}}" , o: "{{user}}", g: "{{user}}"}
+      - {d: "{{billing_codebase}}" , o: "{{user}}", g: "{{user}}"}
+      - {d: "{{server_config_path}}" , o: "{{user}}", g: "{{user}}"}
+      - {d: "{{log_folder_path}}" , o: "{{user}}", g: "{{user}}"}
+  become: true
+
+- name: Update permissions for {{billing_home}}
+  file: path={{billing_home}} state=directory owner={{user}} group={{user}} recurse=yes mode=0755
+  become: true

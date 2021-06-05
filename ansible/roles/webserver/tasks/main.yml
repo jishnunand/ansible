@@ -1,0 +1,50 @@
+---
+
+- name: Install nginx
+  apt: name=nginx state=installed
+  become: true
+
+- name: Install uwsgi
+  pip: name=uwsgi executable=pip3.6 name=uwsgi
+  become: true
+
+- name: "Copy nginx conf"
+  template: src=billing.conf dest=/etc/nginx/sites-enabled
+  become: true
+
+- name: Remove default NGINX server config
+  file: path=/etc/nginx/sites-enabled/default state=absent
+  become: true
+
+- name: Copy uwsgi config
+  template: src=billing-uwsgi.ini dest={{server_config_path}}
+
+- name: Make sure /etc/supervisor/conf.d folder exists.
+  stat: path=/etc/supervisor/conf.d
+  register: st
+  become: true
+
+- name: Create /etc/supervisor/conf.d folder.
+  file: dest=/etc/supervisor/conf.d state=directory
+  become: true
+  when: st.stat.exists == false
+
+- name: Copy supervisor config file
+  template: src=supervisor.conf dest=/etc/supervisor/conf.d
+  become: true
+
+- name: Reread supervisor.
+  shell: "/usr/bin/supervisorctl reread"
+  become: true
+
+- name: Update supervisor.
+  shell: "/usr/bin/supervisorctl update"
+  become: true
+
+- name: Restart Supervisor.
+  shell: "/usr/bin/supervisorctl restart server"
+  become: true
+
+- name: Restart nginx
+  service: name=nginx state=restarted sleep=3
+  become: true

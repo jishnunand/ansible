@@ -1,0 +1,12 @@
+---
+- name: Run migrations
+  django_manage:
+    command: migrate
+    app_path: "{{billing_codebase}}"
+    virtualenv: "{{venv_home}}/{{project_name}}"
+
+- name: Run collectstatic
+  django_manage:
+    command: collectstatic --noinput
+    app_path: "{{billing_codebase}}"
+    virtualenv: "{{venv_home}}/{{project_name}}"

@@ -1,0 +1,17 @@
+---
+
+- hosts: webservers
+  roles:
+    - system_setup
+    - virtualenv
+
+- hosts: webservers
+  vars:
+    ansible_python_interpreter: "/srv/billing/virtualenvs/billing/bin/python3.6"
+  roles:
+    - db
+
+- hosts: webservers
+  roles:
+    - django
+    - webserver

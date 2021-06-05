@@ -1,0 +1,22 @@
+---
+
+- name: "Create DB"
+  postgresql_db:
+    name: "{{db_name}}"
+    encoding: UTF-8
+  become: true
+  become_user: postgres
+
+- name: "Create postgres user"
+  postgresql_user:
+    db: "{{db_name}}"
+    name: "{{db_user}}"
+    password: "{{db_password}}"
+    priv: ALL
+  become: true
+  become_user: postgres
+
+- name: ensure no other user can access the database
+  postgresql_privs: db="{{db_name}}" role=PUBLIC type=database priv=ALL state=absent
+  become: true
+  become_user: postgres

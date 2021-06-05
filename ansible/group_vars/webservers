@@ -1,0 +1,20 @@
+user_home: "/home/{{user}}"
+project_name: "billing"
+billing_home: "/srv/billing"
+project_home: "{{billing_home}}/www"
+
+venv_home: "{{billing_home}}/virtualenvs"
+billing_private: "{{project_home}}/private"
+billing_public: "{{project_home}}/public"
+
+billing_static: "{{billing_public}}/static/"
+billing_media: "{{billing_public}}/media/"
+billing_codebase: "{{billing_private}}/{{project_name}}"
+
+py36_bin_path: "/usr/local/bin/python3.6"
+server_config_path: "{{billing_home}}/server_config"
+log_folder_path: "{{billing_home}}/logs"
+
+db_name: "billing"
+db_user: "portal"
+db_password: "billing@portal"

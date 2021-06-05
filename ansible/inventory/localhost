@@ -1,0 +1,2 @@
+[webservers]
+local.billing.com ansible_port=2222 ansible_user=vagrant
